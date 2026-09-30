@@ -1,7 +1,5 @@
 # funding-service-cfs-frontend
 
-# Calculate Funding Frontend
-
 The web application for the Calculate Funding Service (CFS), providing users with a user-friendly interface to manage funding specifications, calculations, datasets, providers, approvals, and releases.
 
 ---
