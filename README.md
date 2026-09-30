@@ -1,205 +1,139 @@
 # funding-service-cfs-frontend
-# Calculate Funding Service - Release Management Schema
+
+# Calculate Funding Frontend
+
+The web application for the Calculate Funding Service (CFS), providing users with a user-friendly interface to manage funding specifications, calculations, datasets, providers, approvals, and releases.
+
+---
 
 ## Overview
 
-The Calculate Funding Service (CFS) Release Management Schema repository contains the database schema definitions, SQL projects, and deployment artefacts used by the Release Management component of the Calculate Funding Service platform.
+Calculate Funding Frontend is the primary user interface for the Calculate Funding Service platform. It enables policy teams, analysts, and administrators to interact with funding data and services through a secure web application.
 
-This repository acts as the source of truth for all Release Management database objects and supports the controlled deployment of schema changes across environments.
+Key capabilities include:
 
-The schema enables CFS services to manage funding publication releases, release metadata, publishing status information, and associated operational processes.
-
----
-
-## Purpose
-
-This repository is responsible for:
-
-- Maintaining Release Management database schemas.
-- Version controlling database object definitions.
-- Supporting automated CI/CD deployments.
-- Managing schema evolution and database releases.
-- Providing a consistent and auditable approach to database changes.
-- Supporting reporting and operational processes related to funding releases.
+- Funding specification management
+- Dataset management
+- Provider management
+- Calculation configuration and execution
+- Funding approvals and releases
+- User administration and permissions
+- Monitoring and operational support functions
 
 ---
 
-## Solution Context
+## Architecture
 
-The Release Management solution forms part of the Calculate Funding Service ecosystem.
+This application acts as the presentation layer within the Calculate Funding platform and communicates with backend services via REST APIs.
 
-It supports key business processes including:
+```text
+Users
+  │
+  ▼
+Calculate Funding Frontend
+  │
+  ├── Specification API
+  ├── Dataset API
+  ├── Calculation API
+  ├── Provider API
+  ├── Publishing API
+  └── Other supporting services
+```
 
-- Funding release management.
-- Publication tracking.
-- Release status management.
-- Funding publication workflows.
-- Operational reporting.
-- Data integrity and governance.
+---
 
-This repository contains the SQL schema required for these functions.
+## Technology Stack
+
+- ASP.NET Core
+- C#
+- Razor Views / MVC
+- Azure Active Directory Authentication
+- REST APIs
+- Application Insights
+- Docker
+- GitHub Actions
 
 ---
 
 ## Repository Structure
 
 ```text
-.
+CalculateFunding-Frontend/
 │
-├── CalculateFunding-ReleaseManagement/
-│   ├── Tables/
-│   ├── Views/
-│   ├── Stored Procedures/
-│   ├── Functions/
-│   ├── Security/
-│   └── Post Deployment/
-│
-├── DevOps/
-│   ├── Build
-│   └── Release
-│
-├── CalculateFunding-PublishedFundingSchema.sln
-│
-└── README.md
+├── CalculateFunding.Web/
+├── CalculateFunding.Web.Models/
+├── CalculateFunding.Web.Services/
+├── CalculateFunding.Web.ApiClients/
+├── CalculateFunding.Web.Infrastructure/
+├── CalculateFunding.Web.UnitTests/
+└── docs/
 ```
-
-> Actual folder structure may evolve as the solution develops.
-
----
-
-## Technology Stack
-
-The solution is built using:
-
-- SQL Server Database Project (SSDT)
-- Azure SQL Database
-- Azure DevOps Pipelines
-- GitHub
-- Visual Studio
-
----
-
-## Prerequisites
-
-Before contributing to this repository, ensure the following software and access permissions are available.
-
-### Software Requirements
-
-| Tool | Recommended Version |
-|--------|--------|
-| Git | Latest |
-| Visual Studio | 2022 or later |
-| SQL Server Data Tools (SSDT) | Latest |
-| Azure Data Studio or SSMS | Latest |
-| .NET SDK | As required by build pipeline |
-
-### Access Requirements
-
-Developers may require access to:
-
-- GitHub Repository
-- Azure DevOps Project
-- Azure Subscription
-- Azure SQL Database
-- Release Management environments
-
-Contact the repository maintainers if access is required.
 
 ---
 
 ## Getting Started
 
-### Clone the Repository
+### Prerequisites
+
+- .NET SDK (see global.json)
+- Visual Studio 2022 or VS Code
+- Access to Calculate Funding development environment
+- Azure AD account with required permissions
+
+### Clone Repository
 
 ```bash
-git clone https://github.com/DFE-Digital/CalculateFunding-ReleaseManagementSchema.git
+git clone https://github.com/DFE-Digital/funding-service-cfs-frontend.git
+cd funding-service-cfs-frontend
 ```
 
-### Open the Solution
-
-Open:
-
-```text
-CalculateFunding-PublishedFundingSchema.sln
-```
-
-using Visual Studio.
-
----
-
-## Building the Solution
-
-Using Visual Studio:
-
-1. Open the solution.
-2. Restore dependencies if required.
-3. Build the solution.
-
-Or using command line:
+### Restore Packages
 
 ```bash
-msbuild CalculateFunding-PublishedFundingSchema.sln
+dotnet restore
 ```
 
-Successful builds should generate a DACPAC package that can be deployed through the CI/CD pipeline.
+### Build
+
+```bash
+dotnet build
+```
+
+### Run Application
+
+```bash
+dotnet run
+```
 
 ---
 
-## Pull Request Requirements
+## Configuration
 
-Before raising a Pull Request:
+Configuration is provided through:
 
-- Solution builds successfully.
-- Schema changes are validated.
-- Relevant work item is linked.
-- Business justification is provided.
-- Peer review has been completed.
-
----
-
-## Testing Checklist
-
-Prior to merge:
-
-- [ ] Solution builds successfully
-- [ ] Database project validates
-- [ ] Deployment scripts reviewed
-- [ ] No unintended schema changes
-- [ ] Pull Request approved
-- [ ] Pipeline validation completed
-
----
-
-## Security
-
-Do not commit:
-
-- Secrets
-- Passwords
-- API Keys
-- Connection Strings
-- Certificates
-- Environment-specific configuration
-
-Use approved secret-management solutions such as:
-
+- appsettings.json
+- appsettings.Development.json
+- Environment Variables
+- Azure App Configuration
 - Azure Key Vault
-- GitHub Secrets
-- Azure DevOps Variable Groups
+
+Do not commit secrets or credentials to source control.
+
+---
+
+## Authentication & Authorisation
+
+The application uses Azure Active Directory (Azure AD) for authentication and role-based access control.
+
+Access to specific features is governed through application roles and permissions managed within the Calculate Funding platform.
 
 
+## Support
 
-## Contributing
+For support or access requests, contact the Funding & Grants Services team.
 
-Contributions are welcomed from authorised contributors.
+---
 
-Process:
+## Licence
 
-1. Create feature branch.
-2. Implement changes.
-3. Test locally.
-4. Submit Pull Request.
-5. Obtain approval.
-6. Merge into target branch.
-
-
+Unless stated otherwise, the code in this repository is owned and maintained by the Department for Education (DfE).
