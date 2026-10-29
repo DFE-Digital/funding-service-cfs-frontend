@@ -1,0 +1,244 @@
+import axios, { AxiosResponse } from "axios";
+
+import { JobCreatedResponse } from "../types/JobCreatedResponse";
+import { LatestPublishedDate } from "../types/PublishedProvider/LatestPublishedDate";
+import { PublishedProviderFundingCount, PublishedProviderReprofilingSummary } from "../types/PublishedProvider/PublishedProviderFundingCount";
+import { PublishProviderDataDownload } from "../types/PublishedProvider/PublishProviderDataDownload";
+import { AvailableVariationPointerFundingLine } from "../types/Publishing/AvailableVariationPointerFundingLine";
+
+export async function getFundingSummaryForApprovingService(
+  specificationId: string,
+  publishedProviderIds: string[]
+): Promise<AxiosResponse<PublishedProviderFundingCount>> {
+  return axios(`/api/specs/${specificationId}/funding-summary-for-approval`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: publishedProviderIds },
+  });
+}
+
+export async function reproflingProvidersFundingService(
+  specificationId: string,
+  publishedProviderIds: string[]
+): Promise<AxiosResponse<PublishedProviderReprofilingSummary>> {
+  return axios(`/api/specs/${specificationId}/summary-for-reprofiling-on-demand`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: publishedProviderIds },
+  });
+}
+
+export async function getFundingSummaryForReleasingService(
+  specificationId: string,
+  publishedProviderIds: string[]
+): Promise<AxiosResponse<PublishedProviderFundingCount>> {
+  return axios(`/api/specs/${specificationId}/funding-summary-for-release`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: publishedProviderIds },
+  });
+}
+
+export async function preValidateForRefreshFundingService(specificationId: string): Promise<AxiosResponse> {
+  return axios(`/api/specs/${specificationId}/validate-for-refresh`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function refreshSpecificationFundingService(
+  specificationId: string
+): Promise<AxiosResponse<string>> {
+  return axios(`/api/specs/${specificationId}/refresh`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function approveSpecificationFundingService(
+  specificationId: string
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/approve`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function releaseSpecificationFundingService(
+  specificationId: string
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/release`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function approveProvidersFundingService(
+  specificationId: string,
+  providers: string[]
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/funding-approval/providers`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: providers },
+  });
+}
+
+export async function reprofileOnDemandService(
+  specificationId: string,
+  providers: string[]
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/reprofilingondemand`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: providers },
+  });
+}
+
+export async function releaseProvidersFundingService(
+  specificationId: string,
+  providers: string[]
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/funding-release/providers`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: { publishedProviderIds: providers },
+  });
+}
+
+export async function releaseProvidersService(
+  specificationId: string,
+  providers: string[],
+  channelCodes: string[]
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/release-funding-providers`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {
+      providerIds: providers,
+      channels: channelCodes,
+    },
+  });
+}
+
+export async function releaseService(
+  specificationId: string,
+  channelCodes: string[]
+): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specs/${specificationId}/release-funding`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {
+      channels: channelCodes,
+    },
+  });
+}
+
+/// last time funding data was modified (e.g. refresh, approved, released)
+export async function getLatestPublishedDate(fundingStreamId: string, fundingPeriodId: string) {
+  return axios.request<LatestPublishedDate>({
+    url: `/api/publishedproviders/${fundingStreamId}/${fundingPeriodId}/lastupdated`,
+    method: "GET",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function queueReportsJob(specificationId: string): Promise<AxiosResponse<JobCreatedResponse>> {
+  return axios(`/api/specifications/${specificationId}/queue-report-jobs`, {
+    method: "GET",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export async function generateCsvForReleaseBatch(
+  specificationId: string,
+  publishedProviderIds: string[]
+): Promise<AxiosResponse<PublishProviderDataDownload>> {
+  return axios(`/api/specifications/${specificationId}/publishedproviders/generate-csv-for-release/batch`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {
+      publishedProviderIds: publishedProviderIds,
+    },
+  });
+}
+
+export async function generateCsvForReleaseAll(
+  specificationId: string
+): Promise<AxiosResponse<PublishProviderDataDownload>> {
+  return axios(`/api/specifications/${specificationId}/publishedproviders/generate-csv-for-release/all`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {},
+  });
+}
+
+export async function generateCsvForApprovalBatch(
+  specificationId: string,
+  publishedProviderIds: string[]
+): Promise<AxiosResponse<PublishProviderDataDownload>> {
+  return axios(`/api/specifications/${specificationId}/publishedproviders/generate-csv-for-approval/batch`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {
+      publishedProviderIds: publishedProviderIds,
+    },
+  });
+}
+
+export async function generateCsvForApprovalAll(
+  specificationId: string
+): Promise<AxiosResponse<PublishProviderDataDownload>> {
+  return axios(`/api/specifications/${specificationId}/publishedproviders/generate-csv-for-approval/all`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {},
+  });
+}
+
+export async function getAvailableFundingLinePeriods(
+  specificationId: string
+): Promise<AxiosResponse<AvailableVariationPointerFundingLine[]>> {
+  return axios(`/api/publishing/available-funding-line-periods/${specificationId}`, {
+    method: "GET",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}

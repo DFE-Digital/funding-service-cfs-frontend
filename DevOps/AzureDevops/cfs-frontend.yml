@@ -1,0 +1,200 @@
+name: $(Rev:r)
+
+pool:
+  vmImage: windows-2022
+
+trigger:
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+    - releases/*
+
+variables:
+- name: BuildConfiguration
+  value: release
+- name: BuildPlatform
+  value: 'any cpu'
+- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
+  value: '1'
+- name: 'projectFolder'
+  value: 'CalculateFunding.Web/calculatefunding-web'
+- name: vstsFeed
+  value: 'ecf37bc0-472b-47bf-91e3-6774809fd194' 
+- group: 'Dotnet Core SDK Version'
+
+jobs:
+  - job:
+    displayName: 'Build, test and publish'
+    steps:
+    - powershell: |
+        $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace "refs/heads/"
+
+        Write-Host "Checking for differences between $targetBranch and current branch"
+        $reactmergeCommitHash = git merge-base HEAD origin/$targetBranch
+        $reactchangedFiles = @(git diff --name-only $reactmergeCommitHash -- CalculateFunding.Web/)
+        $reactchangedFiles
+        if($reactchangedFiles.Count -gt 0){
+         Write-Host "Changes to to react files, React Build tasks will run"
+        } else {
+         Write-Host "No changes to react files, React Build tasks will NOT run"
+         echo "##vso[task.setvariable variable=SkipBuildReactApp]true"
+        }
+      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+      displayName: "Check if calculatefunding.web folder contents has changed" 
+
+    - powershell: |
+        $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace "refs/heads/"   
+        Write-Host "Checking for differences between $targetBranch and current branch"
+        $netmergeCommitHash = git merge-base HEAD origin/$targetBranch
+        $FrontEndchangedFiles = @(git diff --name-only $netmergeCommitHash -- CalculateFunding.Frontend/)
+        $FrontEndchangedFiles
+        if($FrontEndchangedFiles.Count -gt 0){
+         Write-Host "Changes to to FrontEnd files, .net tasks will run"
+        } else {
+         Write-Host "No changes to FrontEnd files"
+         echo "##vso[task.setvariable variable=Skipdotnettasks]true"
+        }
+      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+      displayName: "Check if Frontend contents has changed" 
+
+    - powershell: |
+        $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace "refs/heads/"
+        Write-Host "Checking for differences between $targetBranch and current branch"
+        $netunittestsmergeCommitHash = git merge-base HEAD origin/$targetBranch
+        $FrontEndUnitTestschangedFiles = @(git diff --name-only $netunittestsmergeCommitHash -- CalculateFunding.FrontEnd.UnitTests/)
+        $FrontEndUnitTestschangedFiles
+        if($FrontEndUnitTestschangedFiles.Count -gt 0){
+         Write-Host "Changes to to FrontEnd Unit Tests files, .net tasks will run"
+        } else {
+         Write-Host "No changes to FrontEnd Unit Tests files"
+         echo "##vso[task.setvariable variable=SkipdotnetUTtasks]true"
+        }
+      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+      displayName: "Check if Frontend Unit Tests contents has changed" 
+
+    - task: NodeTool@0
+      displayName: 'Use Node 20.x'
+      inputs:
+        versionSpec: 20.x
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))   
+
+    - powershell: |
+        cd '${{ variables.projectFolder }}'
+        Write-host "========================= Installing Yarn Packages  ========================="
+        yarn install --silent --network-timeout 1000000000
+      displayName: "Run yarn install"
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - powershell: |
+        cd '${{ variables.projectFolder }}'
+        Write-host "========================= Audit packages  ========================="
+        yarn install --audit
+      displayName: "Audit packages"
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - powershell: |
+        cd '${{ variables.projectFolder }}'
+        $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH -replace "refs/heads/"
+        Write-Host "========================= Running PR checks ========================="
+        Write-Host "Checking for differences between $targetBranch and current branch"
+        $mergeCommitHash = git merge-base HEAD origin/$targetBranch
+        Write-Host "Finding typescript changes between this branch and the current head (commit hash $mergeCommitHash)"
+        $changedFiles = @(git diff --name-only $mergeCommitHash --diff-filter=d -- "*.ts" "*.tsx")
+
+        if($changedFiles.Count -gt 0) {
+          $truncatedChangedFiles = @($changedFiles | ForEach-Object { $_ -replace "CalculateFunding.Web/calculatefunding-web/", "" })
+
+          Write-Host "Changed files:"
+          Write-Host @truncatedChangedFiles
+          Write-Host "Running ESLint over changed files"
+          node .\node_modules\eslint\bin\eslint.js @truncatedChangedFiles
+        } else {
+          Write-Host "Skipping eslint step as no files were changed..."
+        }
+        Write-Host "Running typescript compiler..."
+        node .\node_modules\typescript\bin\tsc --noEmit
+        echo  "========================= Finished running PR checks ========================="   
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'), eq(variables['Build.Reason'], 'PullRequest'))
+      continueOnError: true  
+      displayName: "Run PR checks"
+
+    - powershell: |
+        cd '${{ variables.projectFolder }}'
+        $env:CI = "true"
+        Write-host "========================= Yarn test ========================="
+        yarn test
+        Write-host "========================= Finished test ========================="
+      displayName: 'Run Yarn Test site'
+      continueOnError: true  
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - task: PublishTestResults@2
+      displayName: 'Publish React Test Results as test-report.xml'
+      inputs:
+        testResultsFiles: 'test-report.xml'
+        searchFolder: '$(System.DefaultWorkingDirectory)\${{ variables.projectFolder }}'
+        testRunTitle: 'React Test _$(Build.BuildNumber)'
+      continueOnError: true  
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - powershell: |
+        cd '${{ variables.projectFolder }}'
+        Write-host "========================= Yarn build ========================="
+        $env:NODE_OPTIONS = "--max-old-space-size=4096"
+        $env:CI = "false"
+        yarn run build
+        Write-host "========================= Finished build ========================="
+      displayName: 'Run Yarn build site'
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: CalculateFunding.Frontend/wwwroot/app'
+      inputs:
+        SourceFolder: '${{ variables.projectFolder }}/Build'
+        TargetFolder: CalculateFunding.Frontend/wwwroot/app
+      condition: and(succeeded(), ne(variables['SkipBuildReactApp'], 'true'))
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk $(DotnetCoreSdkVersionNet8)'
+      inputs:
+        version: '$(DotnetCoreSdkVersionNet8)'
+      condition: and(succeeded(), or(ne(variables['Skipdotnettasks'], 'true'), ne(variables['SkipdotnetUTtasks'], 'true'))) 
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+        vstsFeed: '$(vstsFeed)'
+      condition: and(succeeded(), or(ne(variables['Skipdotnettasks'], 'true'), ne(variables['SkipdotnetUTtasks'], 'true'))) 
+
+    - task: DotNetCoreCLI@2
+      displayName: Test
+      inputs:
+        command: test
+        projects: '**/*Tests/*.csproj'
+        arguments: '--configuration $(BuildConfiguration) --collect "Code coverage"'
+      condition: and(succeeded(), or(ne(variables['Skipdotnettasks'], 'true'), ne(variables['SkipdotnetUTtasks'], 'true'))) 
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: publish
+        arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory) /p:AssemblyVersion=$(Build.BuildNumber)'
+      condition: and(succeeded(), or(ne(variables['Skipdotnettasks'], 'true'), ne(variables['SkipdotnetUTtasks'], 'true'))) 
+
+    - task: CopyFiles@2
+      displayName: 'Copy DevOps Files to: $(build.artifactstagingdirectory)/DevOps/'
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      inputs:
+        SourceFolder: DevOps
+        Contents: '**/*.*'
+        TargetFolder: '$(build.artifactstagingdirectory)/DevOps'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      inputs:
+        PathtoPublish: '$(build.artifactstagingdirectory)'

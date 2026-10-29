@@ -1,0 +1,454 @@
+import { AxiosError } from "axios";
+import React, { useEffect, useState } from "react";
+import { useMutation, useQuery } from "react-query";
+import { RouteComponentProps, useHistory } from "react-router";
+import { Link } from "react-router-dom";
+import { Breadcrumb, Breadcrumbs } from "../../../components/Breadcrumbs";
+import Form from "../../../components/Form";
+import { LoadingStatus } from "../../../components/LoadingStatus";
+import { Main } from "../../../components/Main";
+import { MultipleErrorSummary } from "../../../components/MultipleErrorSummary";
+import RadioOption from "../../../components/RadioOption";
+import { SelectionField, SelectionFieldOption } from "../../../components/SelectionField";
+import { TextAreaField } from "../../../components/TextAreaField";
+import { TextField } from "../../../components/TextField";
+import { useErrors } from "../../../hooks/useErrors";
+import { useFundingConfiguration } from "../../../hooks/useFundingConfiguration";
+import { useSpecificationSummary } from "../../../hooks/useSpecificationSummary";
+import * as datasetApi from "../../../services/datasetService";
+import * as fdsDatasetApi from "../../../services/fdsDatasetService";
+import { ProviderSource } from "../../../types/CoreProviderSummary";
+import { AssignDatasetSchemaRequest } from "../../../types/Datasets/AssignDatasetSchemaRequest";
+import { DataschemaDetailsViewModel } from "../../../types/Datasets/DataschemaDetailsViewModel";
+import { Section } from "../../../types/Sections";
+import { useFundingPeriodsByFundingStreamId } from "hooks/useFundingPeriodsByFundingStreamId";
+
+const SafeLink = Link as any;
+
+export interface CreateDatasetFromUploadRouteProps {
+  specificationId: string;
+}
+
+export function CreateDatasetFromUpload({
+  match,
+}: RouteComponentProps<CreateDatasetFromUploadRouteProps>): JSX.Element {
+  const specificationId = match.params.specificationId;
+  const history = useHistory();
+  const { errors, addError, addValidationErrorsAsIndividualErrors, clearErrorMessages } = useErrors();
+  const { specification, isLoadingSpecification } = useSpecificationSummary(specificationId, (err) =>
+    addError({
+      error: err,
+      description: "Error while loading specification",
+    })
+  );
+  const fundingPeriodId = specification && specification?.fundingPeriod?.id;
+  const fundingStreamId = specification?.fundingStreams?.[0]?.id ?? "";
+  const [dataSchemas, setDataSchemas] = useState<DataschemaDetailsViewModel[]>();
+  const [isLoadingDataSchemas, setIsLoadingDataSchemas] = useState<boolean>(false);
+  const [andAnother, setAndAnother] = useState<boolean>();
+  const [isSetAsProviderData, setIsSetAsProviderData] = useState<boolean | undefined>(false);
+  const [converterEligible, setConverterEligible] = useState<boolean>(false);
+  const [converterEnabled, setConverterEnabled] = useState<boolean | undefined>(false);
+  const [selectedDatasetName, setDatasetName] = useState<string>();
+  const [createdDatasetName, setCreatedDatasetName] = useState<string>();
+  const [datasetDescription, setDatasetDescription] = useState<string>();
+  const [selectedDataSchema, setDatasetDataSchema] = useState<string>();
+  const [selectedFundingPeriodId, setSelectedFundingPeriodId] = useState<string>();
+  const [fundingPeriodName, setFundingPeriodName] = useState<string>();
+  const [stateValue, setStateValue] = useState<string | null>(null);
+  
+    const { fundingPeriods, isLoadingFundingPeriods } = useFundingPeriodsByFundingStreamId(
+        fundingStreamId,
+        {
+          onError: (err) =>
+            err.response?.status !== 404 &&
+            addError({
+              error: err,
+              description: "No funding periods exist for your selection",
+              fieldName: "funding-period",
+            }),
+          onSettled: (data) =>
+            !data || data.length === 0
+              ? addError({ error: "No funding periods exist for your selection", fieldName: "funding-period" })
+              : clearErrorMessages(["funding-period"]),
+        }
+      );
+
+  const { fundingConfiguration, isLoadingFundingConfiguration } = useFundingConfiguration(
+    fundingStreamId,
+    fundingPeriodId,
+    (err) => addError({ error: err, description: "Error while loading funding configuration" })
+  );
+
+  useEffect(() => {
+  const fetchDataSchemas = async () => {
+    try {
+      setIsLoadingDataSchemas(true);
+
+      if (history.location?.state === "fds") {
+        if (fundingConfiguration?.displayFundingPeriod) {
+          if (!selectedFundingPeriodId) {
+            setDataSchemas([]);
+            setIsLoadingDataSchemas(false);
+            return;
+          }
+          const result = await fdsDatasetApi.getFDSDatasetsForFundingStreamService(
+            fundingStreamId,
+            selectedFundingPeriodId
+          );
+          setDataSchemas(result.data);
+          // check if data schema is availible for selected funding period
+          if(result.data.length == 0 && result.data){
+            addError({ error: "No data schema available", fieldName: "DatasetDefinitionId" });
+          } else {
+            clearErrorMessages()
+          } 
+        } else {
+          const result = await fdsDatasetApi.getFDSDatasetsForFundingStreamService(
+            fundingStreamId,
+            fundingPeriodId ?? ""
+          );
+          setDataSchemas(result.data);
+        }
+      } else {
+        const result = await datasetApi.getDatasetsForFundingStreamService(fundingStreamId);
+        setDataSchemas(result.data);
+      }
+    } catch (err) {
+      addError({
+        error: err as AxiosError,
+        description: "Error while loading available data schemas",
+      });
+    } finally {
+      setIsLoadingDataSchemas(false);
+    }
+  };
+
+  if (fundingStreamId) {
+    fetchDataSchemas();
+  }
+}, [
+  fundingStreamId,
+  fundingPeriodId,
+  fundingConfiguration?.displayFundingPeriod,
+  selectedFundingPeriodId,
+  history.location?.state,
+]);
+
+  useEffect(() => {
+    if (history.location.state) {
+      localStorage.setItem("pageState", JSON.stringify(history.location.state));
+      setStateValue(history.location.state as string);
+    } else {
+      const stored = localStorage.getItem("pageState");
+      if (stored) setStateValue(JSON.parse(stored));
+    }
+  }, [history.location.state]);
+
+  const {
+    mutate: assignDatasetSchema,
+    isLoading: isUpdating,
+    isSuccess,
+  } = useMutation<boolean, AxiosError, AssignDatasetSchemaRequest>(
+    async (request) => (await datasetApi.assignDatasetSchemaService(request)).data,
+    {
+      onError: (err) => {
+        if (err?.response?.status === 400) {
+          addValidationErrorsAsIndividualErrors({ validationErrors: err.response.data });
+        } else {
+          addError({ error: err, description: "Error while trying to assign dataset schema" });
+        }
+      },
+      onSuccess: (result, variables, context) => {
+        if (variables.addAnotherAfter) {
+          clearFormData(variables.name);
+        } else {
+          history.push(`/ViewSpecification/${specificationId}?showDatasets=true&datasetCreated=${variables.name}`);
+        }
+      },
+    }
+  );
+
+    function changeFundingPeriod(e: React.ChangeEvent<HTMLSelectElement>) {
+      const value = e.target.value;
+      setDatasetDataSchema(undefined);
+      clearErrorMessages()
+      setSelectedFundingPeriodId(value);
+      setFundingPeriodName(e.target.options[e.target.selectedIndex].text)
+    }
+
+
+  function validateFundingPeriod(value: string | undefined) {
+      if (!value?.length && fundingConfiguration?.displayFundingPeriod && history.location?.state === "fds" || value === "Please select") {
+        addError({ error: "Select funding period", fieldName: "funding-period" });
+        return false;
+      }
+      return true;
+    }
+
+  document.title = "Create Data Set - Calculate funding";
+
+  function changeDataSchema(e: React.ChangeEvent<HTMLSelectElement>) {
+    const value = e.target.value;
+
+    const selectedDefinition = dataSchemas?.filter((x) => x.id === value)[0];
+
+    if (selectedDefinition) {
+      setConverterEligible(selectedDefinition?.converterEligible ?? false);
+    }
+      setDatasetDataSchema(value);
+  }
+
+  function validateDataSchema(value: string | undefined) {
+    if (!value?.length === true && value != "Please select") {
+      addError({ error: "Select data schema", fieldName: "DatasetDefinitionId" });
+      return false;
+    }
+
+    return true;
+  }
+
+  function changeDatasetName(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+
+      setDatasetName(value);
+  }
+
+  function validateDatasetName(value: string | undefined) {
+    if (!value?.length) {
+      addError({ error: "Missing name", fieldName: "Name" });
+      return false;
+    }
+
+    return true;
+  }
+
+  function changeDatasetDescription(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+
+      setDatasetDescription(value);
+  }
+
+  function validateDatasetDescription(value: string | undefined) {
+    if (!value?.length) {
+      addError({ error: "Missing description", fieldName: "Description" });
+      return false;
+    }
+
+    return true;
+  }
+
+  const saveDataset = async (continueAddingAfter: boolean) => {
+    clearErrorMessages();
+    setCreatedDatasetName("");
+    const valid = checkSubmission();
+
+    if (valid) {
+      const request: AssignDatasetSchemaRequest = {
+        name: selectedDatasetName as string,
+        description: datasetDescription as string,
+        datasetDefinitionId: selectedDataSchema as string,
+        specificationId: specificationId,
+        isSetAsProviderData: !!isSetAsProviderData,
+        addAnotherAfter: continueAddingAfter,
+        converterEnabled: !!converterEnabled,
+        isFDSData: history.location?.state === "fds" ? true:false,
+        fundingPeriodName: fundingPeriodName
+      };
+      setAndAnother(continueAddingAfter);
+
+      await assignDatasetSchema(request);
+    }
+  };
+
+  function checkSubmission() {
+    const validations = [
+      validateFundingPeriod(fundingPeriodName),
+      validateDatasetName(selectedDatasetName),
+      validateDataSchema(selectedDataSchema),
+      validateDatasetDescription(datasetDescription),
+    ];
+    return validations.every((func) => func);
+  }
+
+  function clearFormData(datasetName:string) {
+    clearErrorMessages();
+    setDatasetDescription("");
+    setSelectedFundingPeriodId(undefined)
+    setDatasetName(undefined);
+    setDatasetDataSchema(undefined);
+    setIsSetAsProviderData(false);
+    setCreatedDatasetName(datasetName);
+
+  }
+
+  return (
+    <Main location={Section.Specifications}>
+      <Breadcrumbs>
+        <Breadcrumb name="Home" url="/" />
+        <Breadcrumb name={"View specifications"} url={"/SpecificationsList"} />
+        <Breadcrumb
+          name={specification ? specification.name : "specification"}
+          url={`/ViewSpecification/${specificationId}`}
+        />
+      </Breadcrumbs>
+      <MultipleErrorSummary errors={errors} />
+      {(createdDatasetName != undefined && createdDatasetName !="") && (
+            <div className="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+              <div className="govuk-notification-banner__header"><h2 className="govuk-notification-banner__title" id="govuk-notification-banner-title">Success</h2></div>
+              <div className="govuk-notification-banner__content"><p className="govuk-heading-s">{createdDatasetName } dataset added successfully</p></div></div>
+            )}
+
+
+      {(isLoadingSpecification || isLoadingFundingConfiguration || isUpdating) && (
+        <LoadingStatus
+          title={
+            isLoadingSpecification
+              ? "Loading specification"
+              : isLoadingFundingConfiguration
+              ? "Loading funding configuration"
+              : isUpdating
+              ? "Creating Dataset"
+              : "Loading"
+          }
+          id={"create-dataset-loader"}
+          subTitle="Please wait"
+          description={isUpdating ? "This can take a few minutes" : ""}
+        />
+      )}
+
+      {!isUpdating && specification && fundingConfiguration && (
+        <div className="govuk-grid-row">
+          <div className="govuk-grid-column-full">
+            <Form token="create-dataset" heading={specification.name} titleCaption="">
+              <h2 className="govuk-heading-m">Create dataset</h2>
+              <div className="govuk-warning-text">
+                <span className="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong className="govuk-warning-text__text">
+                  <span className="govuk-warning-text__assistive">Warning</span>
+                  Check funding lines/calculations before creating data set
+                </strong>
+              </div>
+              { stateValue === "fds" && fundingConfiguration.displayFundingPeriod &&
+                <SelectionField
+                  token="funding-period"
+                  label={"Funding period"}
+                  options={fundingPeriods?.map((fp) => ({
+                    id: fp.id,
+                    displayValue: fp.name,
+                  }))}
+                  changeSelection={changeFundingPeriod}
+                  selectedValue={selectedFundingPeriodId}
+                  errors={errors.filter((e) => e.fieldName === "funding-period")}
+                  isLoading={isLoadingFundingPeriods}
+                />
+          }
+              <SelectionField
+                token="data-schema"
+                label={history.location?.state === "fds" ? "Select the FDS data schema" : "Select data schema" }
+                options={dataSchemas?.map<SelectionFieldOption>((d) => ({
+                  id: d.id,
+                  displayValue: d.name,
+                }))}
+                changeSelection={changeDataSchema}
+                selectedValue={selectedDataSchema}
+                errors={errors.filter((e) => e.fieldName === "DatasetDefinitionId")}
+                isLoading={isLoadingDataSchemas}
+              />
+              <TextField
+                token="dataset-name"
+                label="Data set name"
+                hint="Use a descriptive unique name other users can understand"
+                onChange={changeDatasetName}
+                value={selectedDatasetName}
+                errors={errors.filter((e) => e.fieldName === "Name")}
+                isLoading={isLoadingDataSchemas}
+              />
+              <TextAreaField
+                token="dataset-name"
+                label="Description"
+                hint="Please provide a description for the dataset"
+                onChange={changeDatasetDescription}
+                value={datasetDescription}
+                errors={errors.filter((e) => e.fieldName === "Description")}
+                isLoading={isLoadingDataSchemas}
+              />
+
+              {fundingConfiguration && fundingConfiguration.providerSource === ProviderSource.CFS && (
+                <div className="govuk-form-group">
+                  <fieldset className="govuk-fieldset">
+                    <legend className="govuk-fieldset__legend govuk-fieldset__legend--xl">
+                      <h3 className="govuk-heading-m">Set as provider data</h3>
+                    </legend>
+                    <div className="govuk-radios govuk-radios--inline">
+                      <RadioOption
+                        token="set-as-data-provider-yes"
+                        label="Yes"
+                        value="true"
+                        checked={isSetAsProviderData === true}
+                        callback={() => setIsSetAsProviderData(true)}
+                      />
+                      <RadioOption
+                        token="set-as-data-provider-no"
+                        label="No"
+                        value="false"
+                        checked={isSetAsProviderData === false}
+                        callback={() => setIsSetAsProviderData(false)}
+                      />
+                    </div>
+                  </fieldset>
+                </div>
+              )}
+              {converterEligible == true && (
+                <div className="govuk-form-group">
+                  <fieldset className="govuk-fieldset ">
+                    <legend className="govuk-fieldset__legend govuk-fieldset__legend--xl">
+                      <h3 className="govuk-heading-m">Enable copy data for provider</h3>
+                    </legend>
+                    <div className="govuk-radios govuk-radios--inline">
+                      <RadioOption
+                        token="set-converter-enabled-yes"
+                        label="Yes"
+                        value="true"
+                        checked={converterEnabled === true}
+                        callback={() => setConverterEnabled(true)}
+                      />
+                      <RadioOption
+                        token="set-converter-enabled-no"
+                        label="No"
+                        value="false"
+                        checked={converterEnabled === false}
+                        callback={() => setConverterEnabled(false)}
+                      />
+                    </div>
+                  </fieldset>
+                </div>
+              )}
+            </Form>
+            <button
+              className="govuk-button govuk-!-margin-right-1"
+              data-module="govuk-button"
+              onClick={() => saveDataset(false)}
+            >
+              Save and continue
+            </button>
+            <button
+              className="govuk-button govuk-button--secondary"
+              data-module="govuk-button"
+              onClick={() => saveDataset(true)}
+            >
+              Save and add another
+            </button>
+            <SafeLink
+              to={`/ViewSpecification/${specificationId}?showDatasets=true`}
+              className="govuk-button govuk-button--warning govuk-!-margin-left-1"
+              data-module="govuk-button"
+            >
+              Cancel
+            </SafeLink>
+          </div>
+        </div>
+      )}
+    </Main>
+  );
+}
