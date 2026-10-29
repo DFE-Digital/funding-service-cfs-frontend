@@ -76,16 +76,16 @@
     "@types/react-router-dom": "5.3.2",
     "@types/react-sidebar": "^3.0.2",
     "@types/redux-logger": "^3.0.9",
-    "axios": "^0.21.4",
+    "axios": "^1.21.0",
     "clarity-js": "^0.7.59",
     "cross-env": "^7.0.3",
     "decimal.js": "^10.3.1",
-    "dexie": "3.0.3",
+    "dexie": "4.4.7",
     "eslint": "6.8.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "govuk-frontend": "5.11.0",
     "govuk-react": "^0.7.2",
-    "http-proxy-middleware": "^0.20.0",
+    "http-proxy-middleware": "^4.2.1",
     "husky": "^7.0.4",
     "json-digger": "^1.1.5",
     "lint-staged": "^11.1.4",
@@ -121,7 +121,7 @@
     "start-server-and-test": "^1.13.1",
     "styled-components": "^4.4.1",
     "typescript": "^4.6.2",
-    "uuid": "^7.0.3"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@sheerun/mutationobserver-shim": "^0.3.3",
