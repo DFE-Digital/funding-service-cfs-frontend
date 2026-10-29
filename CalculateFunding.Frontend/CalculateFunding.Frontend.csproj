@@ -1,0 +1,223 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>3eb82587-ead7-4379-9be6-35fe8f84dbda</UserSecretsId>
+    <TypeScriptToolsVersion>4.2</TypeScriptToolsVersion>
+    <CodeAnalysisRuleSet>CalculateFunding.ruleset</CodeAnalysisRuleSet>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\CalculateFunding.Frontend.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Remove="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="spa-url-rewrite.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.2.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="4.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="10.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="9.0.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.FDS" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.FundingDataZone" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="9.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="6.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="8.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Publishing" Version="9.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="8.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Users" Version="5.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FDS" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="6.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="5.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Identity" Version="5.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="4.0.0" />
+    <PackageReference Include="Collector.Serilog.Enrichers.Correlation" Version="2.1.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.13" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="4.5.1" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.16.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.13" />
+    <PackageReference Include="Microsoft.FeatureManagement" Version="2.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" PrivateAssets="All" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Clients\CalcsClient\**" />
+    <Compile Remove="Clients\SpecsClient\**" />
+    <Compile Remove="Scripts\**" />
+    <Compile Remove="ViewModels\Preview\**" />
+    <Content Remove="Clients\CalcsClient\**" />
+    <Content Remove="Clients\SpecsClient\**" />
+    <Content Remove="Scripts\**" />
+    <Content Remove="ViewModels\Preview\**" />
+    <EmbeddedResource Remove="Clients\CalcsClient\**" />
+    <EmbeddedResource Remove="Clients\SpecsClient\**" />
+    <EmbeddedResource Remove="Scripts\**" />
+    <EmbeddedResource Remove="ViewModels\Preview\**" />
+    <None Remove="Clients\CalcsClient\**" />
+    <None Remove="Clients\SpecsClient\**" />
+    <None Remove="Scripts\**" />
+    <None Remove="ViewModels\Preview\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Interfaces\ApiClient\ISpecsApiClient.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="spa-url-rewrite.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\BreadcrumbText.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BreadcrumbText.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\ErrorMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\PageText.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PageText.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\ValidationMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ValidationMessages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\BreadcrumbText.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>BreadcrumbText.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\ErrorMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\PageText.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>PageText.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\ValidationMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="web.config">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="Pages\Shared\_Layout.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Pages\Specs\EditTemplateCalculation.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\Approvals\Choose.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Approvals\Confirm.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Approvals\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Approvals\ViewFunding.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\AdditionalCalculations.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\Compare.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\CreateAdditionalCalculation.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\DiffCalculation.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\EditAdditionalCalculation.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\EditTemplateCalculation.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Calcs\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\AssignDataSetSchema.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\CreateDataset.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\DatasetHistory.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\DatasetRelationships.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\ListDatasetSchemas.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\ManageDatasets.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\Schemas.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\SelectSourceDataset.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\SpecificationRelationships.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Datasets\UpdateDataset.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Results\CalculationProviderResults.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Results\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Results\TestScenarioResults.cshtml" />
+    <_ContentIncludedByDefault Remove="Pages\Specs\EditSpecification.cshtml" />
+    <_ContentIncludedByDefault Remove="wwwroot\assetsjs\bootstrap-multiselect-e2feb10e12.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\assetsjs\main-0a2b261fb0.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\fonts\bootstrap\glyphicons-halflings-regular.eot" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\fonts\bootstrap\glyphicons-halflings-regular.svg" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\fonts\bootstrap\glyphicons-halflings-regular.ttf" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\fonts\bootstrap\glyphicons-halflings-regular.woff" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\fonts\bootstrap\glyphicons-halflings-regular.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\govuk_bootstrap.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\apple-touch-icon-120x120.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\apple-touch-icon-152x152.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\apple-touch-icon-60x60.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\apple-touch-icon-76x76.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\close.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\favicon.ico" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\gov.uk_logotype_crown-1x.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\gov.uk_logotype_crown.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\gov.uk_logotype_crown.svg" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\gov.uk_logotype_crown_invert.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\govuk-crest-2x.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\govuk-crest-ie.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\govuk-crest.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\open-government-licence.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\open-government-licence_2x.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\libs\govuk_bootstrap\images\opengraph-image.png" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+    <ApplicationIcon />
+    <Win32Resource />
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties tsconfig_1tests_1json__JSONSchema="http://json.schemastore.org/tsconfig" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

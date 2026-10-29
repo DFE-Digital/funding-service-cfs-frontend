@@ -1,0 +1,23 @@
+﻿using CalculateFunding.Common.ApiClient.DataSets.Models;
+
+namespace CalculateFunding.Frontend.Clients.DatasetsClient.Models
+{
+    public class ValidateDatasetModel
+    {
+        public string DatasetId { get; set; }
+
+        public string FundingStreamId { get; set; }
+
+        public int Version { get; set; }
+
+        public string Filename { get; set; }
+
+        public string Description { get; set; }
+
+        public string Comment { get; set; }
+        
+        public bool MergeExistingVersion { get; set; }
+
+        public DatasetEmptyFieldEvaluationOptions EmptyFieldEvaluationOption { get; set; }
+    }
+}

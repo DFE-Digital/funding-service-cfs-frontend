@@ -1,0 +1,33 @@
+import '@testing-library/jest-dom';
+
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { EditCalculationTestData } from "./EditCalculationTestData";
+
+const testData = EditCalculationTestData();
+
+describe("<EditCalculation> tests with successful build source code but no provider match", () => {
+  beforeEach(async () => {
+    testData.mockOutMonacoEditor();
+    testData.mockWithFullPermissions();
+    testData.mockSpecification();
+    testData.mockNoCircularRefErrors();
+    testData.mockSuccessfulBuildWithNoProvider();
+
+    await testData.renderEditCalculation();
+  });
+  afterEach(() => jest.clearAllMocks());
+
+  it("renders no provider found message when no provider name is returned in for the given provider Id", async () => {
+    const buildButton = await waitFor(() => screen.getByRole("button", { name: /Build calculation/i }));
+    const textbox = screen.getByTestId("providerId");
+
+    fireEvent.change(textbox, { target: { value: "123456" } });
+    userEvent.click(buildButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/No provider found. Try a different UKPRN./)).toBeInTheDocument();
+    });
+  });
+});

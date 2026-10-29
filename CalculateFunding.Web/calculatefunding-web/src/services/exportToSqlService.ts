@@ -1,0 +1,40 @@
+﻿import axios from "axios";
+
+import { JobCreatedResponse } from "../types/JobCreatedResponse";
+
+const runJobToExportAllocationDataToSql = (specificationId: string, fundingStreamId: string) => {
+  return axios.request<JobCreatedResponse>({
+    url: `/api/sqlqa/specifications/${specificationId}/funding-streams/${fundingStreamId}/export-to-sql`,
+    method: "GET",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+};
+
+const runJobToExportCalcResultsToSql = (specificationId: string) => {
+  return axios.request<JobCreatedResponse>({
+    url: `/api/results/specifications/${specificationId}/calculation-results/export-to-sql`,
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+    data: {}
+  });
+};
+
+const runJobToExportReleasedDataToSql = (specificationId:string, fundingStreamId:string) =>{
+  return axios.request<JobCreatedResponse>({
+    url: `/api/sqlqa/specifications/${specificationId}/funding-streams/${fundingStreamId}/released/export-to-sql`,
+    method: "GET",
+    headers: { 
+      "Content-Type": "application/query+json",
+      "x-ms-documentdb-isquery": "True"},
+  });
+}
+
+export const sqlExportService = {
+  runJobToExportAllocationDataToSql,
+  runJobToExportCalcResultsToSql,
+  runJobToExportReleasedDataToSql
+};
